@@ -44,7 +44,14 @@ func start(ctx context.Context) error {
 	{
 		logflags := flag.NewFlagSet("dummy", flag.ExitOnError)
 		klog.InitFlags(logflags)
-		root.PersistentFlags().AddGoFlagSet(logflags)
+
+		logflags.Set("logtostderr", "false")
+		logflags.Set("alsologtostderr", "false")
+		logflags.Set("stderrthreshold", "fatal")
+		logflags.Set("v", "0")
+		// logflags.Set("log_file", "...")
+
+		// root.PersistentFlags().AddGoFlagSet(logflags)
 	}
 
 	f := cmdutil.NewFactory(kcf)
