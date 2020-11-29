@@ -1,47 +1,66 @@
 package ui
 
 import (
-	"context"
-	"fmt"
-	"time"
+	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v2/views"
 
-	"github.com/ripta/axe/pkg/iorate"
-	"github.com/ripta/axe/pkg/kubelogs"
-	"github.com/ripta/axe/pkg/logger"
+	"github.com/ripta/axe/pkg/ui/themes"
+	"github.com/ripta/axe/pkg/ui/widgets"
 )
 
 type UI struct {
-	*kubelogs.Manager
-	l logger.Interface
+	views.BoxLayout
+
+	app       *views.Application
+	statusbar *widgets.Statusbar
+	pager     *widgets.Pager
 }
 
-func New(l logger.Interface, m *kubelogs.Manager) *UI {
-	return &UI{
-		Manager: m,
-		l:       l,
+func New(app *views.Application, style themes.Theme) *UI {
+	pg := widgets.NewPager(app)
+
+	sb := widgets.NewStatusbar(app, style)
+	sb.SetStatus("START-UP")
+
+	u := &UI{
+		app:       app,
+		pager:     pg,
+		statusbar: sb,
 	}
+
+	u.SetOrientation(views.Vertical)
+	u.AddWidget(pg, 1)
+	u.AddWidget(sb, 0)
+	return u
 }
 
-func (u *UI) Run(ctx context.Context) error {
-	u.l.Printf("starting manager")
-	if err := u.Manager.Run(ctx); err != nil {
-		return err
+func (u *UI) HandleEvent(e tcell.Event) bool {
+	switch te := e.(type) {
+	case *tcell.EventKey:
+		return u.handleEventKey(te)
 	}
+	return false
+}
 
-	rate := iorate.New()
-	su := time.Tick(time.Second)
-
-	u.l.Printf("starting UI")
-	for {
-		select {
-		case line := <-u.Manager.Logs():
-			rate.Add(len(line.Bytes))
-			// u.l.Printf("%s/%s: %s", line.Namespace, line.Name, string(line.Bytes))
-			_ = line
-		case <-su:
-			fmt.Printf("\rRate: %s/s\033[0K", iorate.HumanizeBytes(rate.Calculate(time.Second)))
-		case <-ctx.Done():
-			return nil
+func (u *UI) handleEventKey(ek *tcell.EventKey) bool {
+	switch ek.Key() {
+	case tcell.KeyCtrlC:
+		u.app.Quit()
+		return true
+	case tcell.KeyRune:
+		switch ek.Rune() {
+		case 'q':
+			u.app.Quit()
+			return true
 		}
 	}
+	return false
+}
+
+func (u *UI) SetMessage(s string) {
+	u.statusbar.SetMessage(s)
+}
+
+func (u *UI) SetStatus(s string) {
+	u.statusbar.SetStatus(s)
 }
