@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
@@ -15,8 +16,8 @@ import (
 	"k8s.io/klog"
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
 
+	"github.com/ripta/axe/pkg/app"
 	"github.com/ripta/axe/pkg/kubelogs"
-	"github.com/ripta/axe/pkg/ui"
 )
 
 func main() {
@@ -30,6 +31,7 @@ func main() {
 
 func start(ctx context.Context) error {
 	logger := log.New(os.Stderr, "", log.Lmicroseconds)
+	logger.SetOutput(ioutil.Discard)
 
 	root := &cobra.Command{
 		Use:           "axe",
@@ -70,7 +72,7 @@ func run(logger *log.Logger, f cmdutil.Factory) func(*cobra.Command, []string) e
 		}
 
 		m := kubelogs.NewManager(logger, cs, 1*time.Second, 3*time.Minute)
-		u := ui.New(logger, m)
+		a := app.New(logger, m)
 
 		nss, _, err := f.ToRawKubeConfigLoader().Namespace()
 		if err != nil {
@@ -81,6 +83,6 @@ func run(logger *log.Logger, f cmdutil.Factory) func(*cobra.Command, []string) e
 			m.Watch(strings.TrimSpace(ns))
 		}
 
-		return u.Run(ctx)
+		return a.Run(ctx)
 	}
 }
