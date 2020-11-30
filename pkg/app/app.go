@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/gdamore/tcell/v2/views"
@@ -18,10 +20,12 @@ type App struct {
 	App        *views.Application
 	UI         *ui.UI
 	LogManager *kubelogs.Manager
-	l          logger.Interface
+
+	debug bool
+	l     logger.Interface
 }
 
-func New(l logger.Interface, m *kubelogs.Manager) *App {
+func New(l logger.Interface, m *kubelogs.Manager, debug bool) *App {
 	style := themes.SolarizedDark()
 	app := &views.Application{}
 
@@ -32,11 +36,27 @@ func New(l logger.Interface, m *kubelogs.Manager) *App {
 		App:        app,
 		UI:         u,
 		LogManager: m,
-		l:          l,
+
+		debug: debug,
+		l:     l,
 	}
 }
 
 func (a *App) Run(ctx context.Context) error {
+	var spool *os.File
+	var err error
+
+	if a.debug {
+		spool, err = ioutil.TempFile("", "axe-*.spool")
+		if err != nil {
+			return err
+		}
+		defer func() {
+			spool.Close()
+			fmt.Printf("Spool: %+v\n", spool.Name())
+		}()
+	}
+
 	a.App.Start()
 
 	go func() {
@@ -57,7 +77,7 @@ func (a *App) Run(ctx context.Context) error {
 	}()
 
 	rate := iorate.New()
-	su := time.Tick(2 * time.Second)
+	su := time.Tick(5 * time.Second)
 
 	a.l.Printf("starting UI")
 	go func() {
@@ -65,13 +85,19 @@ func (a *App) Run(ctx context.Context) error {
 			select {
 			case line := <-a.LogManager.Logs():
 				rate.Add(len(line.Bytes))
+				msg := line.Name + "» " + string(line.Bytes)
 				// a.l.Printf("%s/%s: %s", line.Namespace, line.Name, string(line.Bytes))
+				a.UI.PagerAppend(msg)
+				if spool != nil {
+					spool.WriteString(msg + "\n")
+				}
 				_ = line
 			case <-su:
 				activeCnt, allCnt := a.LogManager.ContainerCount()
 				r := iorate.HumanizeBytes(rate.Calculate(time.Second))
 				a.App.PostFunc(func() {
-					a.UI.SetMessage(fmt.Sprintf("%d/%d containers | %s/s", activeCnt, allCnt, r))
+					l := iorate.HumanizeBytes(float64(a.UI.PagerLen()))
+					a.UI.SetMessage(fmt.Sprintf("%d/%d containers | %s (%s/s)", activeCnt, allCnt, l, r))
 				})
 			case <-ctx.Done():
 				break

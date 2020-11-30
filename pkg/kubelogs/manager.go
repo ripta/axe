@@ -26,6 +26,7 @@ var ErrInformerNeverSynced = errors.New("informer cache never completed syncing"
 type Manager struct {
 	kubernetes.Interface
 
+	debug bool
 	l     logger.Interface
 	logCh chan logger.LogLine
 	mu    sync.Mutex
@@ -40,7 +41,7 @@ type Manager struct {
 	resync   time.Duration
 }
 
-func NewManager(l logger.Interface, cs kubernetes.Interface, lookback, resync time.Duration) *Manager {
+func NewManager(l logger.Interface, cs kubernetes.Interface, lookback, resync time.Duration, debug bool) *Manager {
 	if lookback > 0 {
 		lookback = -lookback
 	}
@@ -50,6 +51,7 @@ func NewManager(l logger.Interface, cs kubernetes.Interface, lookback, resync ti
 
 	return &Manager{
 		Interface: cs,
+		debug:     debug,
 		l:         l,
 		mu:        sync.Mutex{},
 		logCh:     make(chan logger.LogLine, 1000),

@@ -40,6 +40,8 @@ func start(ctx context.Context) error {
 		SilenceErrors: true,
 	}
 
+	root.PersistentFlags().Bool("debug", false, "Enable debug logs")
+
 	kcf := genericclioptions.NewConfigFlags(true)
 	kcf.AddFlags(root.PersistentFlags())
 
@@ -66,13 +68,18 @@ func run(logger *log.Logger, f cmdutil.Factory) func(*cobra.Command, []string) e
 	return func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
+		debug, err := cmd.Flags().GetBool("debug")
+		if err != nil {
+			return err
+		}
+
 		cs, err := f.KubernetesClientSet()
 		if err != nil {
 			return err
 		}
 
-		m := kubelogs.NewManager(logger, cs, 1*time.Second, 3*time.Minute)
-		a := app.New(logger, m)
+		m := kubelogs.NewManager(logger, cs, 1*time.Second, 3*time.Minute, debug)
+		a := app.New(logger, m, debug)
 
 		nss, _, err := f.ToRawKubeConfigLoader().Namespace()
 		if err != nil {
