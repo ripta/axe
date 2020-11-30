@@ -10,11 +10,13 @@ import (
 
 type Rate struct {
 	clock clockwork.Clock
+	count uint64
 	total uint64
 	mu    sync.Mutex
 
 	since time.Time
 	prev  uint64
+	rate  float64
 }
 
 func New() *Rate {
@@ -27,6 +29,7 @@ func New() *Rate {
 }
 
 func (r *Rate) Add(n int) {
+	atomic.AddUint64(&r.count, 1)
 	atomic.AddUint64(&r.total, uint64(n))
 }
 
@@ -36,11 +39,14 @@ func (r *Rate) Calculate(per time.Duration) float64 {
 
 	now := r.clock.Now()
 	dur := now.Sub(r.since)
+	if dur == 0 {
+		return r.rate
+	}
 
 	delta := r.total - r.prev
-	rate := float64(delta*uint64(per)) / float64(dur)
+	r.rate = float64(delta*uint64(per)) / float64(dur)
 
 	r.prev = r.total
 	r.since = now
-	return rate
+	return r.rate
 }

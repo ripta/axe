@@ -10,8 +10,8 @@ func GenerateHumanize(sz, base float64, units []string) string {
 	magnitude := math.Floor(math.Log(sz) / math.Log(base))
 	value := sz / math.Pow(base, magnitude)
 
-	if int(magnitude) >= len(units) {
-		return fmt.Sprintf("!VALUE TOO LARGE (%d)", sz)
+	if int(magnitude) >= len(units) || magnitude < 0 {
+		return ""
 	}
 
 	var sigdigits int
