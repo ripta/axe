@@ -68,9 +68,10 @@ func (a *App) Run(ctx context.Context) error {
 				// a.l.Printf("%s/%s: %s", line.Namespace, line.Name, string(line.Bytes))
 				_ = line
 			case <-su:
+				activeCnt, allCnt := a.LogManager.ContainerCount()
 				r := iorate.HumanizeBytes(rate.Calculate(time.Second))
 				a.App.PostFunc(func() {
-					a.UI.SetMessage(fmt.Sprintf("Tailing %d containers | Transferring: %s/s", 1, r))
+					a.UI.SetMessage(fmt.Sprintf("%d/%d containers | %s/s", activeCnt, allCnt, r))
 				})
 			case <-ctx.Done():
 				break

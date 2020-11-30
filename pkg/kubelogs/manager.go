@@ -34,6 +34,8 @@ type Manager struct {
 	nsInformers     map[string]informers.SharedInformerFactory
 	podLogCancelers map[string]context.CancelFunc
 
+	containerTails map[string]bool
+
 	lookback time.Duration
 	resync   time.Duration
 }
@@ -52,6 +54,7 @@ func NewManager(l logger.Interface, cs kubernetes.Interface, lookback, resync ti
 		mu:        sync.Mutex{},
 		logCh:     make(chan logger.LogLine, 1000),
 
+		containerTails:  make(map[string]bool),
 		nsCancelers:     make(map[string]context.CancelFunc),
 		nsInformers:     make(map[string]informers.SharedInformerFactory),
 		podLogCancelers: make(map[string]context.CancelFunc),
@@ -61,8 +64,28 @@ func NewManager(l logger.Interface, cs kubernetes.Interface, lookback, resync ti
 	}
 }
 
+func (m *Manager) ContainerCount() (int, int) {
+	var active, all int
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for _, up := range m.containerTails {
+		all += 1
+		if up {
+			active += 1
+		}
+	}
+	return active, all
+}
+
 func (m *Manager) Logs() <-chan logger.LogLine {
 	return m.logCh
+}
+
+func (m *Manager) NamespaceCount() int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return len(m.nsInformers)
 }
 
 func (m *Manager) Run(ctx context.Context) error {
@@ -225,6 +248,17 @@ func (m *Manager) tailPodLogs(ctx context.Context, ns, name string) {
 }
 
 func (m *Manager) tailPodContainerLogs(ctx context.Context, pl listerv1.PodLister, ns, name, cn string) {
+	key := fmt.Sprintf("%s/%s/%s", ns, name, cn)
+
+	m.mu.Lock()
+	m.containerTails[key] = true
+	m.mu.Unlock()
+	defer func() {
+		m.mu.Lock()
+		m.containerTails[key] = false
+		m.mu.Unlock()
+	}()
+
 	m.l.Printf("starting tail of logs for container %s/%s/%s", ns, name, cn)
 	plo := v1.PodLogOptions{
 		Container: cn,
