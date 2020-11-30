@@ -66,7 +66,8 @@ func start(ctx context.Context) error {
 
 func run(logger *log.Logger, f cmdutil.Factory) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		ctx := cmd.Context()
+		ctx, cancel := context.WithCancel(cmd.Context())
+		defer cancel()
 
 		debug, err := cmd.Flags().GetBool("debug")
 		if err != nil {
