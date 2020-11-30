@@ -57,6 +57,7 @@ func (a *App) Run(ctx context.Context) error {
 		}()
 	}
 
+	a.l.Printf("starting UI")
 	a.App.Start()
 
 	go func() {
@@ -76,11 +77,10 @@ func (a *App) Run(ctx context.Context) error {
 		}
 	}()
 
-	rate := iorate.New()
-	su := time.Tick(5 * time.Second)
-
-	a.l.Printf("starting UI")
 	go func() {
+		rate := iorate.New()
+		su := time.Tick(5 * time.Second)
+
 		for {
 			select {
 			case line := <-a.LogManager.Logs():
