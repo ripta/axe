@@ -70,10 +70,6 @@ func (a *App) Run(ctx context.Context) error {
 				a.UI.SetStatus("ERROR", themes.AltTypeError)
 				a.UI.SetMessage(fmt.Sprintf("Log manager reported: %+v", err))
 			})
-		} else {
-			a.App.PostFunc(func() {
-				a.UI.SetStatus("TAILING", themes.AltTypeOK)
-			})
 		}
 	}()
 

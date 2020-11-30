@@ -64,17 +64,35 @@ func (u *UI) handleAppEventKeys(ek *tcell.EventKey) bool {
 func (u *UI) handleScrollEventKeys(ek *tcell.EventKey) bool {
 	switch ek.Key() {
 	case tcell.KeyCtrlD:
+		u.autoscroll = false
 		u.pager.ScrollPageDown(1)
 		return true
 	case tcell.KeyCtrlU:
+		u.autoscroll = false
 		u.pager.ScrollPageUp(1)
 		return true
 	case tcell.KeyDown:
+		u.autoscroll = false
 		u.pager.ScrollDown(1)
 		return true
 	case tcell.KeyUp:
+		u.autoscroll = false
 		u.pager.ScrollUp(1)
 		return true
+	case tcell.KeyRune:
+		switch ek.Rune() {
+		case 'f':
+			u.autoscroll = !u.autoscroll
+			return true
+		case 'j':
+			u.autoscroll = false
+			u.pager.ScrollPageDown(1)
+			return true
+		case 'k':
+			u.autoscroll = false
+			u.pager.ScrollPageUp(1)
+			return true
+		}
 	}
 	return false
 }
@@ -82,7 +100,10 @@ func (u *UI) handleScrollEventKeys(ek *tcell.EventKey) bool {
 func (u *UI) PagerAppend(line string) {
 	u.pager.Append(line)
 	if u.autoscroll {
+		u.statusbar.SetStatus("FOLLOW", themes.AltTypeNew)
 		u.pager.ScrollToEnd()
+	} else {
+		u.statusbar.SetStatus("NOFOLLOW", themes.AltTypeNormal)
 	}
 
 	pct := u.pager.GetScrollPercentage()
