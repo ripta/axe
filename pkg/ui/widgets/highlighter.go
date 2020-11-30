@@ -65,6 +65,10 @@ func (h *Highlighter) Highlight(idx int) bool {
 	return true
 }
 
+func (h *Highlighter) Len() int {
+	return len(h.t.Text())
+}
+
 func (h *Highlighter) Pos(idx int) (int, int, bool) {
 	if idx < 0 || idx >= len(h.lights) {
 		return 0, 0, false

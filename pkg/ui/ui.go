@@ -13,7 +13,9 @@ type UI struct {
 
 	app       *views.Application
 	statusbar *widgets.Statusbar
-	pager     *widgets.Pager
+
+	autoscroll bool
+	pager      *widgets.Pager
 }
 
 func New(app *views.Application, style themes.Theme) *UI {
@@ -24,8 +26,10 @@ func New(app *views.Application, style themes.Theme) *UI {
 
 	u := &UI{
 		app:       app,
-		pager:     pg,
 		statusbar: sb,
+
+		autoscroll: true,
+		pager:      pg,
 	}
 
 	u.SetOrientation(views.Vertical)
@@ -55,6 +59,20 @@ func (u *UI) handleEventKey(ek *tcell.EventKey) bool {
 		}
 	}
 	return false
+}
+
+func (u *UI) PagerAppend(line string) {
+	u.pager.Append(line)
+	if u.autoscroll {
+		u.pager.ScrollToEnd()
+	}
+
+	pct := u.pager.GetScrollPercentage()
+	u.statusbar.SetScrollPercentage(int(pct * 100))
+}
+
+func (u *UI) PagerLen() int {
+	return u.pager.Len()
 }
 
 func (u *UI) SetMessage(s string) {

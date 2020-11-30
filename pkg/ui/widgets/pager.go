@@ -89,6 +89,10 @@ func (p *Pager) Highlight(idx int) bool {
 	return true
 }
 
+func (p *Pager) Len() int {
+	return p.h.Len()
+}
+
 func (p *Pager) Resize() {
 	w, h := p.v.Size()
 	p.vp.Resize(0, 0, w, h)
