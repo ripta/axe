@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"strings"
+	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
@@ -124,17 +125,16 @@ func (h *Highlighter) reset() {
 
 	s := h.t.Text()
 	kw := string(h.kw)
-
 	for x := 0; len(kw) > 0; {
 		i := strings.Index(s, kw)
 		if i == -1 {
 			break
 		}
 
-		is := len([]rune(s[:i])) + x
+		is := x + utf8.RuneCountInString(s[:i])
 		h.lights = append(h.lights, is)
-		s = s[i+len(kw):]
-		x += len(kw) + i
+		s = s[i+len(h.kw):]
+		x += i + len(h.kw)
 	}
 
 	current := h.t.Style().Background(tcell.ColorYellow)
