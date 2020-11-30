@@ -15,5 +15,5 @@ type LogLine struct {
 	Type      LogLineType
 	Namespace string
 	Name      string
-	Bytes     []byte
+	Text      string
 }

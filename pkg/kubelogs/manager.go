@@ -304,7 +304,7 @@ func (m *Manager) tailPodContainerLogs(ctx context.Context, pl listerv1.PodListe
 				Type:      logger.LogLineTypeContainer,
 				Namespace: ns,
 				Name:      name,
-				Bytes:     scanner.Bytes(),
+				Text:      scanner.Text(),
 			}
 			select {
 			case m.logCh <- line:
