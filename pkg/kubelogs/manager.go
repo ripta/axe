@@ -261,7 +261,7 @@ func (m *Manager) tailPodContainerLogs(ctx context.Context, pl listerv1.PodListe
 		m.mu.Unlock()
 	}()
 
-	m.l.Printf("starting tail of logs for container %s/%s/%s", ns, name, cn)
+	m.l.Printf("starting tail of logs for container %s", key)
 	plo := v1.PodLogOptions{
 		Container: cn,
 		Follow:    true,
@@ -275,7 +275,7 @@ func (m *Manager) tailPodContainerLogs(ctx context.Context, pl listerv1.PodListe
 			if apierrors.IsTooManyRequests(err) {
 				// TODO(ripta): add jitter
 				time.Sleep(5 * time.Second)
-				m.l.Printf("got throttled by apiserver while asking about container %s/%s/%s", ns, name, cn)
+				m.l.Printf("got throttled by apiserver while asking about container %s", key)
 				continue
 			}
 			if apierrors.IsNotFound(err) {
@@ -289,7 +289,7 @@ func (m *Manager) tailPodContainerLogs(ctx context.Context, pl listerv1.PodListe
 		if err != nil {
 			// TODO(ripta): add jitter
 			time.Sleep(5 * time.Second)
-			m.l.Printf("could not tail %s/%s/%s: %+v", ns, name, cn, err)
+			m.l.Printf("could not tail container %s: %+v", key, err)
 			continue
 		}
 		defer stream.Close()
@@ -297,7 +297,7 @@ func (m *Manager) tailPodContainerLogs(ctx context.Context, pl listerv1.PodListe
 		// lag := time.NewTimer(time.Millisecond)
 		// defer lag.Stop()
 
-		m.l.Printf("streaming logs for container %s/%s/%s", ns, name, cn)
+		m.l.Printf("streaming logs for container %s", key)
 		scanner := bufio.NewScanner(stream)
 		for scanner.Scan() {
 			line := logger.LogLine{
@@ -311,15 +311,15 @@ func (m *Manager) tailPodContainerLogs(ctx context.Context, pl listerv1.PodListe
 			// case <-lag.C:
 			// 	m.l.Printf("event buffer full, dropping logs for %s/%s", ns, name)
 			case <-ctx.Done():
-				m.l.Printf("stopped tailing %s/%s/%s", ns, name, cn)
+				m.l.Printf("stopped tailing container %s", key)
 				return
 			}
 		}
 
 		plo.SinceTime.Time = time.Now()
-		m.l.Printf("end of tail for container %s/%s/%s", ns, name, cn)
+		m.l.Printf("end of logs for container %s", key)
 		if err := scanner.Err(); err != nil {
-			m.l.Printf("error tailing container %s/%s/%s: %+v", ns, name, cn, err)
+			m.l.Printf("error tailing container %s: %+v", key, err)
 		}
 
 		// TODO(ripta): add jitter
