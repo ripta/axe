@@ -41,12 +41,12 @@ func New(app *views.Application, style themes.Theme) *UI {
 func (u *UI) HandleEvent(e tcell.Event) bool {
 	switch te := e.(type) {
 	case *tcell.EventKey:
-		return u.handleEventKey(te)
+		return u.handleAppEventKeys(te) || u.handleScrollEventKeys(te)
 	}
 	return false
 }
 
-func (u *UI) handleEventKey(ek *tcell.EventKey) bool {
+func (u *UI) handleAppEventKeys(ek *tcell.EventKey) bool {
 	switch ek.Key() {
 	case tcell.KeyCtrlC:
 		u.app.Quit()
@@ -57,6 +57,24 @@ func (u *UI) handleEventKey(ek *tcell.EventKey) bool {
 			u.app.Quit()
 			return true
 		}
+	}
+	return false
+}
+
+func (u *UI) handleScrollEventKeys(ek *tcell.EventKey) bool {
+	switch ek.Key() {
+	case tcell.KeyCtrlD:
+		u.pager.ScrollPageDown(1)
+		return true
+	case tcell.KeyCtrlU:
+		u.pager.ScrollPageUp(1)
+		return true
+	case tcell.KeyDown:
+		u.pager.ScrollDown(1)
+		return true
+	case tcell.KeyUp:
+		u.pager.ScrollUp(1)
+		return true
 	}
 	return false
 }

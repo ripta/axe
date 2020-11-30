@@ -103,6 +103,16 @@ func (p *Pager) ScrollDown(rows int) {
 	p.vp.ScrollDown(rows)
 }
 
+func (p *Pager) ScrollPageDown(pg int) {
+	_, h := p.v.Size()
+	p.vp.ScrollDown(h * pg / 2)
+}
+
+func (p *Pager) ScrollPageUp(pg int) {
+	_, h := p.v.Size()
+	p.vp.ScrollUp(h * pg / 2)
+}
+
 func (p *Pager) ScrollToBeginning() {
 	_, h := p.v.Size()
 	p.vp.ScrollUp(h)
