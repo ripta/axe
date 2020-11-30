@@ -105,7 +105,7 @@ func (a *App) Run(ctx context.Context) error {
 				r := iorate.HumanizeBytes(rate.Calculate(time.Second))
 				a.App.PostFunc(func() {
 					l := iorate.HumanizeBytes(float64(a.UI.PagerLen()))
-					a.UI.SetMessage(fmt.Sprintf("%d/%d containers | %s (%s/s)", activeCnt, allCnt, l, r))
+					a.UI.SetMessage(fmt.Sprintf("%d/%d containers | %s transferred (%s/s)", activeCnt, allCnt, l, r))
 				})
 			case <-ctx.Done():
 				break
