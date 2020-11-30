@@ -47,13 +47,13 @@ func (a *App) Run(ctx context.Context) error {
 	var err error
 
 	if a.debug {
-		spool, err = ioutil.TempFile("", "axe-*.spool")
+		spool, err = ioutil.TempFile("", "axe-*.log")
 		if err != nil {
 			return err
 		}
 		defer func() {
 			spool.Close()
-			fmt.Printf("Spool: %+v\n", spool.Name())
+			fmt.Printf("Log file: %+v\n", spool.Name())
 		}()
 	}
 
