@@ -84,14 +84,15 @@ func (a *App) Run(ctx context.Context) error {
 		for {
 			select {
 			case line := <-a.LogManager.Logs():
-				rate.Add(len(line.Text))
 				msg := line.Name + "] " + line.Text
-				// a.l.Printf("%s/%s: %s", line.Namespace, line.Name, string(line.Bytes))
-				a.UI.PagerAppend(msg)
-				if spool != nil {
-					spool.WriteString(msg + "\n")
-				}
-				_ = line
+
+				rate.Add(len(msg))
+				a.App.PostFunc(func() {
+					a.UI.PagerAppend(msg)
+					if spool != nil {
+						spool.WriteString(msg + "\n")
+					}
+				})
 			case <-su:
 				activeCnt, allCnt := a.LogManager.ContainerCount()
 				r := iorate.HumanizeBytes(rate.Calculate(time.Second))
