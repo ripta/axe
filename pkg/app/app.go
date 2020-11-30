@@ -84,15 +84,22 @@ func (a *App) Run(ctx context.Context) error {
 		for {
 			select {
 			case line := <-a.LogManager.Logs():
-				msg := line.Name + "] " + line.Text
+				switch line.Type {
+				case logger.LogLineTypeAxe:
+					a.App.PostFunc(func() {
+						a.UI.SetMessage(fmt.Sprintf("axe: %s", line.Text))
+					})
+				case logger.LogLineTypeContainer:
+					msg := line.Name + "] " + line.Text
 
-				rate.Add(len(msg))
-				a.App.PostFunc(func() {
-					a.UI.PagerAppend(msg)
-					if spool != nil {
-						spool.WriteString(msg + "\n")
-					}
-				})
+					rate.Add(len(msg))
+					a.App.PostFunc(func() {
+						a.UI.PagerAppend(msg)
+						if spool != nil {
+							spool.WriteString(msg + "\n")
+						}
+					})
+				}
 			case <-su:
 				activeCnt, allCnt := a.LogManager.ContainerCount()
 				r := iorate.HumanizeBytes(rate.Calculate(time.Second))

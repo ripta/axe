@@ -298,6 +298,11 @@ func (m *Manager) tailPodContainerLogs(ctx context.Context, pl listerv1.PodListe
 		// defer lag.Stop()
 
 		m.l.Printf("streaming logs for container %s", key)
+		m.logCh <- logger.LogLine{
+			Type: logger.LogLineTypeAxe,
+			Text: fmt.Sprintf("streaming logs for container %s", key),
+		}
+
 		scanner := bufio.NewScanner(stream)
 		for scanner.Scan() {
 			line := logger.LogLine{
