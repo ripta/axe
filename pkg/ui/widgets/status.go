@@ -51,10 +51,10 @@ func (bar *Statusbar) SetScrollPercentage(pct int) {
 	bar.scroll.SetText(fmt.Sprintf(" %d%% ", pct))
 }
 
-func (bar *Statusbar) SetStatus(s string) {
+func (bar *Statusbar) SetStatus(s string, a themes.AltType) {
 	if len(s) > 8 {
 		s = s[:8]
 	}
 	bar.status.SetText(fmt.Sprintf(" %-8s ", s))
-	bar.status.SetStyle(bar.styles.Normal)
+	bar.status.SetStyle(bar.styles.Select(a))
 }

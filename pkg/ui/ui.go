@@ -22,7 +22,7 @@ func New(app *views.Application, style themes.Theme) *UI {
 	pg := widgets.NewPager(app)
 
 	sb := widgets.NewStatusbar(app, style)
-	sb.SetStatus("START-UP")
+	sb.SetStatus("START-UP", themes.AltTypeError)
 
 	u := &UI{
 		app:       app,
@@ -97,6 +97,6 @@ func (u *UI) SetMessage(s string) {
 	u.statusbar.SetMessage(s)
 }
 
-func (u *UI) SetStatus(s string) {
-	u.statusbar.SetStatus(s)
+func (u *UI) SetStatus(s string, a themes.AltType) {
+	u.statusbar.SetStatus(s, a)
 }

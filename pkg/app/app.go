@@ -61,17 +61,17 @@ func (a *App) Run(ctx context.Context) error {
 
 	go func() {
 		a.App.PostFunc(func() {
-			a.UI.SetStatus("SYNCING")
+			a.UI.SetStatus("SYNCING", themes.AltTypeNew)
 		})
 		// a.l.Printf("starting manager")
 		if err := a.LogManager.Run(ctx); err != nil {
 			a.App.PostFunc(func() {
-				a.UI.SetStatus("ERROR")
+				a.UI.SetStatus("ERROR", themes.AltTypeError)
 				a.UI.SetMessage(fmt.Sprintf("Log manager reported: %+v", err))
 			})
 		} else {
 			a.App.PostFunc(func() {
-				a.UI.SetStatus("TAILING")
+				a.UI.SetStatus("TAILING", themes.AltTypeOK)
 			})
 		}
 	}()
