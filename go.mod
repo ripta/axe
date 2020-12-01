@@ -3,6 +3,7 @@ module github.com/ripta/axe
 go 1.15
 
 require (
+	github.com/dgraph-io/ristretto v0.0.3
 	github.com/gdamore/tcell/v2 v2.0.1-0.20201017141208-acf90d56d591
 	github.com/jonboulle/clockwork v0.1.0
 	github.com/mattn/go-runewidth v0.0.9
