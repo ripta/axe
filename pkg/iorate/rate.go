@@ -10,7 +10,6 @@ import (
 
 type Rate struct {
 	clock clockwork.Clock
-	count uint64
 	total uint64
 	mu    sync.Mutex
 
@@ -29,7 +28,6 @@ func New() *Rate {
 }
 
 func (r *Rate) Add(n int) {
-	atomic.AddUint64(&r.count, 1)
 	atomic.AddUint64(&r.total, uint64(n))
 }
 

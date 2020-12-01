@@ -75,6 +75,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	go func() {
 		rate := iorate.New()
+		lrate := iorate.New()
 		su := time.Tick(5 * time.Second)
 
 		for {
@@ -89,6 +90,7 @@ func (a *App) Run(ctx context.Context) error {
 					msg := line.Name + "] " + line.Text
 
 					rate.Add(len(msg))
+					lrate.Add(1)
 					a.App.PostFunc(func() {
 						a.UI.PagerAppend(msg)
 						if spool != nil {
@@ -99,9 +101,10 @@ func (a *App) Run(ctx context.Context) error {
 			case <-su:
 				activeCnt, allCnt := a.LogManager.ContainerCount()
 				r := iorate.HumanizeBytes(rate.Calculate(time.Second))
+				l := int(lrate.Calculate(time.Second))
 				a.App.PostFunc(func() {
-					l := iorate.HumanizeBytes(float64(a.UI.PagerLen()))
-					a.UI.SetMessage(fmt.Sprintf("%d/%d containers | %s transferred (%s/s)", activeCnt, allCnt, l, r))
+					b := iorate.HumanizeBytes(float64(a.UI.PagerLen()))
+					a.UI.SetMessage(fmt.Sprintf("%d/%d containers | %s transferred | %s/s | %d lps", activeCnt, allCnt, b, r, l))
 				})
 			case <-ctx.Done():
 				break
