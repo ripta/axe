@@ -50,7 +50,7 @@ func GlogTransformer(meta, in string) (Structline, bool) {
 		return s, false
 	}
 
-	s.KV["message"] = segs[1]
+	s.Message = segs[1]
 
 	fields := strings.Fields(segs[0])
 	if len(fields) != 4 {
